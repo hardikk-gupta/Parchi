@@ -9,13 +9,13 @@
         <aapt:attr name="android:fillColor">
             <gradient
                 android:angle="135"
-                android:endColor="#1E3F35"
-                android:startColor="#2F6352"
+                android:endColor="#1F0038"
+                android:startColor="#3B0066"
                 android:type="linear" />
         </aapt:attr>
     </path>
-    <!-- Soft warm overlay ring -->
+    <!-- Soft supporting purple radial halo ring -->
     <path
-        android:fillColor="#15FFFFFF"
+        android:fillColor="#33A500FF"
         android:pathData="M54,54m-42,0a42,42 0 1,1 84,0a42,42 0 1,1 -84,0" />
 </vector>

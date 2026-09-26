@@ -22,11 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -55,6 +50,7 @@ import com.example.ui.theme.InkBlack
 import com.example.ui.theme.InkMuted
 import com.example.ui.theme.MicPulsingRed
 import com.example.ui.theme.MicRecordRed
+import com.example.ui.theme.ParchiPurpleDark
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -111,7 +107,7 @@ fun VoiceRecordingOverlay(
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Close,
+                            imageVector = LucideIcons.Close,
                             contentDescription = "Close",
                             tint = InkMuted
                         )
@@ -150,10 +146,10 @@ fun VoiceRecordingOverlay(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = if (isListening) Icons.Default.Stop else Icons.Default.Mic,
+                            imageVector = if (isListening) LucideIcons.Pause else LucideIcons.Mic,
                             contentDescription = "Microphone",
                             tint = Color.White,
-                            modifier = Modifier.size(36.dp)
+                            modifier = Modifier.size(34.dp)
                         )
                     }
                 }
@@ -181,7 +177,6 @@ fun VoiceRecordingOverlay(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Quick Tap Voice Chips for shopkeeper convenience or emulator testing
                 Text(
                     text = "Quick Demo Voice Phrases (Tap to parse):",
                     fontSize = 11.sp,
@@ -227,7 +222,7 @@ fun VoiceRecordingOverlay(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Manual voice simulation text input (for typing or emulator without mic)
+                // Manual input
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -241,8 +236,8 @@ fun VoiceRecordingOverlay(
                             .weight(1f)
                             .testTag("manual_voice_input"),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF8B5E3C),
-                            focusedLabelColor = Color(0xFF8B5E3C)
+                            focusedBorderColor = MicRecordRed,
+                            focusedLabelColor = MicRecordRed
                         )
                     )
 
@@ -258,10 +253,10 @@ fun VoiceRecordingOverlay(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFF1E3A2F))
+                            .background(ParchiPurpleDark)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Send,
+                            imageVector = LucideIcons.Send,
                             contentDescription = "Send Phrase",
                             tint = Color.White
                         )
@@ -276,8 +271,8 @@ fun VoiceRecordingOverlay(
                     onClick = {
                         if (isListening) onStopListening() else onDismiss()
                     },
-                    icon = if (isListening) Icons.Default.Stop else Icons.Default.Close,
-                    backgroundColor = if (isListening) MicRecordRed else Color(0xFF1E293B),
+                    icon = if (isListening) LucideIcons.Pause else LucideIcons.Close,
+                    backgroundColor = if (isListening) MicRecordRed else ParchiPurpleDark,
                     modifier = Modifier.fillMaxWidth(),
                     height = 50.dp,
                     testTag = "stop_voice_recording_button"

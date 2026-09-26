@@ -184,30 +184,46 @@ fun CustomerInfoSection(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // Name field
-                CustomerDetailLine(
-                    icon = Icons.Default.Person,
-                    label = "Name",
-                    value = customerName
-                )
+                // Render present customer fields without empty dashes
+                var hasAnyField = false
 
-                Spacer(modifier = Modifier.height(4.dp))
+                if (customerName.isNotBlank()) {
+                    hasAnyField = true
+                    CustomerDetailLine(
+                        icon = Icons.Default.Person,
+                        label = "Name",
+                        value = customerName
+                    )
+                }
 
-                // Phone / Number field
-                CustomerDetailLine(
-                    icon = Icons.Default.Call,
-                    label = "Number",
-                    value = customerPhone
-                )
+                if (customerPhone.isNotBlank()) {
+                    if (hasAnyField) Spacer(modifier = Modifier.height(4.dp))
+                    hasAnyField = true
+                    CustomerDetailLine(
+                        icon = Icons.Default.Call,
+                        label = "Number",
+                        value = customerPhone
+                    )
+                }
 
-                Spacer(modifier = Modifier.height(4.dp))
+                if (customerHouseNo.isNotBlank()) {
+                    if (hasAnyField) Spacer(modifier = Modifier.height(4.dp))
+                    hasAnyField = true
+                    CustomerDetailLine(
+                        icon = Icons.Default.Home,
+                        label = "House No.",
+                        value = customerHouseNo
+                    )
+                }
 
-                // House / Address field
-                CustomerDetailLine(
-                    icon = Icons.Default.Home,
-                    label = "House No.",
-                    value = customerHouseNo
-                )
+                if (!hasAnyField) {
+                    Text(
+                        text = "+ Add Customer Info (Optional)",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = InkMuted
+                    )
+                }
             }
         }
     }
@@ -236,21 +252,11 @@ private fun CustomerDetailLine(
             fontWeight = FontWeight.SemiBold,
             color = InkMuted
         )
-        if (value.isNotBlank()) {
-            Text(
-                text = value,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = InkBlack
-            )
-        } else {
-            // Preserved empty space as required
-            Text(
-                text = "________________________",
-                fontSize = 12.sp,
-                color = InkFaint,
-                fontFamily = FontFamily.Monospace
-            )
-        }
+        Text(
+            text = value,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            color = InkBlack
+        )
     }
 }

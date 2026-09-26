@@ -1,6 +1,12 @@
 package com.example.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -17,31 +23,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.DeleteOutline
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.ReceiptLong
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Storefront
-import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,7 +55,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
@@ -63,17 +69,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.model.BillEntity
-import com.example.ui.theme.PastelAmber
-import com.example.ui.theme.PastelAmberAccent
-import com.example.ui.theme.PastelLavender
-import com.example.ui.theme.PastelLavenderAccent
-import com.example.ui.theme.PastelMint
-import com.example.ui.theme.PastelMintAccent
-import com.example.ui.theme.PastelMintBorder
-import com.example.ui.theme.PastelRose
-import com.example.ui.theme.PastelRoseAccent
-import com.example.ui.theme.PastelSky
-import com.example.ui.theme.PastelSkyAccent
+import com.example.ui.components.AppLogoIcon
+import com.example.ui.components.CustomerEditDialog
+import com.example.ui.components.LucideIcons
+import com.example.ui.theme.InkDark
+import com.example.ui.theme.InkLight
+import com.example.ui.theme.InkMuted
+import com.example.ui.theme.ParchiPurpleContainer
+import com.example.ui.theme.ParchiPurpleDark
+import com.example.ui.theme.ParchiPurpleDeep
+import com.example.ui.theme.ParchiPurpleLight
+import com.example.ui.theme.ParchiPurplePrimary
+import com.example.ui.theme.ParchiPurpleSupporting
 import java.util.Locale
 
 @Composable
@@ -85,25 +92,27 @@ fun HomeScreen(
     val filteredBills by viewModel.filteredBills.collectAsStateWithLifecycle()
     val allBills by viewModel.savedBills.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
+    var showStoreEditDialog by remember { mutableStateOf(false) }
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF7F8FB))
+            .background(Color(0xFFFAF7FC))
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Top Bar: Store Name on Left, Search Icon on Right (POS READY REMOVED)
+            // Header Section: Store Name + SVG Receipt Logo, Search Toggle & Store Profile Icon
             HomeTopBar(
                 storeName = uiState.storeName,
                 isSearchExpanded = uiState.isSearchExpanded,
-                onToggleSearch = { viewModel.toggleSearch() }
+                onToggleSearch = { viewModel.toggleSearch() },
+                onOpenStoreProfile = { showStoreEditDialog = true }
             )
 
-            // Expandable Search Bar (When Search Icon is Toggled)
+            // Expandable Search Bar
             AnimatedVisibility(
                 visible = uiState.isSearchExpanded,
                 enter = expandVertically() + fadeIn(),
@@ -119,20 +128,20 @@ fun HomeScreen(
                         onValueChange = { viewModel.updateSearchQuery(it) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .shadow(3.dp, RoundedCornerShape(18.dp), spotColor = Color(0x14000000))
+                            .shadow(2.dp, RoundedCornerShape(18.dp), spotColor = Color(0x14000000))
                             .testTag("search_bills_input"),
                         placeholder = {
                             Text(
                                 text = "Search by bill #, customer, item or date...",
                                 fontSize = 13.sp,
-                                color = Color(0xFF94A3B8)
+                                color = InkLight
                             )
                         },
                         leadingIcon = {
                             Icon(
-                                imageVector = Icons.Default.Search,
+                                imageVector = LucideIcons.Search,
                                 contentDescription = "Search",
-                                tint = PastelSkyAccent,
+                                tint = ParchiPurpleSupporting,
                                 modifier = Modifier.size(20.dp)
                             )
                         },
@@ -146,9 +155,9 @@ fun HomeScreen(
                                 }
                             }) {
                                 Icon(
-                                    imageVector = Icons.Default.Clear,
+                                    imageVector = LucideIcons.Close,
                                     contentDescription = "Clear search",
-                                    tint = Color(0xFF64748B),
+                                    tint = InkMuted,
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
@@ -158,7 +167,7 @@ fun HomeScreen(
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = Color.White,
                             unfocusedContainerColor = Color.White,
-                            focusedBorderColor = PastelSkyAccent,
+                            focusedBorderColor = ParchiPurpleSupporting,
                             unfocusedBorderColor = Color(0xFFE2E8F0)
                         ),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -167,15 +176,15 @@ fun HomeScreen(
                 }
             }
 
-            // Main Content Area based on Selected Tab
+            // Main Tab Content: Receipts (2 Column Grid) or Daily Sales
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
             ) {
                 when (uiState.selectedHomeTab) {
-                    HomeNavTab.Receipts -> {
-                        ReceiptsTabContent(
+                    HomeNavTab.Receipts, HomeNavTab.Profile -> {
+                        Receipts2ColumnGridContent(
                             bills = filteredBills,
                             searchQuery = uiState.searchQuery,
                             onBillClick = { bill -> viewModel.openExistingBill(bill) },
@@ -190,45 +199,49 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxSize()
                         )
                     }
-                    HomeNavTab.Profile -> {
-                        StoreProfileTabContent(
-                            storeName = uiState.storeName,
-                            storeCategory = uiState.storeCategory,
-                            storePhone = uiState.storePhone,
-                            onSave = { name, cat, phone ->
-                                viewModel.updateStoreProfile(name, cat, phone)
-                            },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
                 }
             }
 
-            // THE HIGHLIGHT: "Start Another Receipt" Action Bar Just Above The Navigation Bar
-            StartReceiptActionBar(
-                onStartReceipt = { viewModel.startNewReceipt() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp)
-            )
-
-            // Modern Squircle Navigation Bar (Pastel Tints, Squircle Pill Indicators)
-            HomeSquircleNavigationBar(
+            // Modern Navigation Bar with Circular Voice Mic Button
+            JupiterBulgeNavigationBar(
                 selectedTab = uiState.selectedHomeTab,
-                onSelectTab = { tab -> viewModel.selectHomeTab(tab) }
+                isListening = uiState.isListening,
+                onSelectTab = { tab -> viewModel.selectHomeTab(tab) },
+                onMicClick = {
+                    if (uiState.isListening) {
+                        viewModel.stopVoiceRecording()
+                    } else {
+                        viewModel.startNewReceipt()
+                    }
+                }
+            )
+        }
+
+        // Store Profile / Settings Modal
+        if (showStoreEditDialog) {
+            StoreProfileEditDialog(
+                storeName = uiState.storeName,
+                storeCategory = uiState.storeCategory,
+                storePhone = uiState.storePhone,
+                onDismiss = { showStoreEditDialog = false },
+                onSave = { name, cat, phone ->
+                    viewModel.updateStoreProfile(name, cat, phone)
+                    showStoreEditDialog = false
+                }
             )
         }
     }
 }
 
 /**
- * Clean Top Bar: Business Name on Left, Search Icon on Right (POS READY Removed)
+ * Top Header: App Logo SVG, Store Name, Search & Profile Icons
  */
 @Composable
 private fun HomeTopBar(
     storeName: String,
     isSearchExpanded: Boolean,
     onToggleSearch: () -> Unit,
+    onOpenStoreProfile: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -238,124 +251,73 @@ private fun HomeTopBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.weight(1f)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f)
+        ) {
+            AppLogoIcon(
+                size = 28.dp,
+                fillColor = ParchiPurplePrimary,
+                strokeColor = ParchiPurpleSupporting
+            )
+            Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = storeName.uppercase(Locale.getDefault()),
-                fontSize = 18.sp,
+                fontSize = 19.sp,
                 fontWeight = FontWeight.Black,
                 fontFamily = FontFamily.Monospace,
-                letterSpacing = 1.sp,
-                color = Color(0xFF0F172A),
+                letterSpacing = 1.1.sp,
+                color = InkDark,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Text(
-                text = "Kirana Voice Billing POS",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium,
-                fontFamily = FontFamily.Monospace,
-                color = Color(0xFF64748B)
-            )
         }
 
-        // Search Icon Button in Squircle Container
-        Box(
-            modifier = Modifier
-                .size(42.dp)
-                .shadow(2.dp, RoundedCornerShape(14.dp), spotColor = Color(0x14000000))
-                .clip(RoundedCornerShape(14.dp))
-                .background(if (isSearchExpanded) PastelSky else Color.White)
-                .border(
-                    1.dp,
-                    if (isSearchExpanded) PastelSkyAccent else Color(0xFFE2E8F0),
-                    RoundedCornerShape(14.dp)
-                )
-                .clickable { onToggleSearch() }
-                .testTag("home_search_toggle_button"),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "Search Bills",
-                tint = if (isSearchExpanded) PastelSkyAccent else Color(0xFF334155),
-                modifier = Modifier.size(20.dp)
-            )
-        }
-    }
-}
-
-/**
- * Dedicated Action Bar positioned right above the navigation bar:
- * "Start Another Receipt" / "Create Another Bill"
- */
-@Composable
-private fun StartReceiptActionBar(
-    onStartReceipt: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .shadow(6.dp, RoundedCornerShape(20.dp), spotColor = Color(0x1F000000))
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
-            .border(1.2.dp, PastelRoseAccent.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
-            .clickable { onStartReceipt() }
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-            .testTag("start_another_receipt_bar")
-    ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "START ANOTHER RECEIPT",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Black,
-                        fontFamily = FontFamily.Monospace,
-                        letterSpacing = 0.8.sp,
-                        color = Color(0xFF0F172A)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(PastelRose)
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = "VOICE POS",
-                            fontSize = 8.5.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace,
-                            color = PastelRoseAccent
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "Tap to speak items or create bill",
-                    fontSize = 11.5.sp,
-                    color = Color(0xFF64748B)
-                )
-            }
-
-            // Squircle Mic Action Icon
+            // Search Toggle Icon
             Box(
                 modifier = Modifier
                     .size(42.dp)
+                    .shadow(2.dp, RoundedCornerShape(14.dp), spotColor = Color(0x14000000))
                     .clip(RoundedCornerShape(14.dp))
-                    .background(PastelRose)
-                    .border(1.dp, PastelRoseAccent.copy(alpha = 0.4f), RoundedCornerShape(14.dp)),
+                    .background(if (isSearchExpanded) ParchiPurpleLight else Color.White)
+                    .border(
+                        1.2.dp,
+                        if (isSearchExpanded) ParchiPurpleSupporting else Color(0xFFE2E8F0),
+                        RoundedCornerShape(14.dp)
+                    )
+                    .clickable { onToggleSearch() }
+                    .testTag("home_search_toggle_button"),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Mic,
-                    contentDescription = "Start Voice Receipt",
-                    tint = PastelRoseAccent,
-                    modifier = Modifier.size(22.dp)
+                    imageVector = LucideIcons.Search,
+                    contentDescription = "Search Bills",
+                    tint = if (isSearchExpanded) ParchiPurpleSupporting else InkDark,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            // Store / Profile Settings Icon
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .shadow(2.dp, RoundedCornerShape(14.dp), spotColor = Color(0x14000000))
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Color.White)
+                    .border(1.2.dp, Color(0xFFE2E8F0), RoundedCornerShape(14.dp))
+                    .clickable { onOpenStoreProfile() }
+                    .testTag("home_store_profile_button"),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = LucideIcons.Store,
+                    contentDescription = "My Store Profile",
+                    tint = ParchiPurpleSupporting,
+                    modifier = Modifier.size(20.dp)
                 )
             }
         }
@@ -363,118 +325,164 @@ private fun StartReceiptActionBar(
 }
 
 /**
- * Modern Squircle Navigation Bar (3 Tabs: Receipts, Daily Sales, Store Profile)
+ * Modern Floating Pill Navigation Bar with Circular Voice Mic Button
  */
 @Composable
-private fun HomeSquircleNavigationBar(
+private fun JupiterBulgeNavigationBar(
     selectedTab: HomeNavTab,
+    isListening: Boolean,
     onSelectTab: (HomeNavTab) -> Unit,
+    onMicClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val infiniteTransition = rememberInfiniteTransition(label = "mic_glow")
+    val glowScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glow_scale"
+    )
+
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp),
-        contentAlignment = Alignment.Center
+            .padding(horizontal = 20.dp, vertical = 10.dp),
+        contentAlignment = Alignment.BottomCenter
     ) {
-        Row(
+        // Floating Pill Container Bar
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(8.dp, RoundedCornerShape(20.dp), spotColor = Color(0x1A000000))
-                .clip(RoundedCornerShape(20.dp))
+                .height(68.dp)
+                .shadow(12.dp, CircleShape, spotColor = ParchiPurpleSupporting.copy(alpha = 0.25f), ambientColor = Color(0x1A000000))
+                .clip(CircleShape)
                 .background(Color.White)
-                .border(1.2.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
-                .padding(horizontal = 8.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .border(1.5.dp, Color(0xFFF1F5F9), CircleShape)
+                .padding(horizontal = 12.dp)
         ) {
-            // Tab 1: Receipts
-            SquircleNavTabItem(
-                icon = Icons.Default.ReceiptLong,
-                label = "Receipts",
-                isSelected = selectedTab == HomeNavTab.Receipts,
-                activeBgColor = PastelLavender,
-                activeAccentColor = PastelLavenderAccent,
-                onClick = { onSelectTab(HomeNavTab.Receipts) },
-                testTag = "tab_receipts",
-                modifier = Modifier.weight(1f)
-            )
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Tab 1: Receipts (Left)
+                val isReceiptsSelected = selectedTab == HomeNavTab.Receipts || selectedTab == HomeNavTab.Profile
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                        .clip(CircleShape)
+                        .background(if (isReceiptsSelected) ParchiPurpleContainer else Color.Transparent)
+                        .clickable { onSelectTab(HomeNavTab.Receipts) }
+                        .padding(horizontal = 14.dp)
+                        .testTag("tab_receipts"),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = LucideIcons.Receipt,
+                        contentDescription = "Receipts",
+                        tint = if (isReceiptsSelected) ParchiPurpleSupporting else InkMuted,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Receipts",
+                        fontSize = 14.sp,
+                        fontWeight = if (isReceiptsSelected) FontWeight.ExtraBold else FontWeight.Medium,
+                        color = if (isReceiptsSelected) ParchiPurpleDark else InkMuted
+                    )
+                }
 
-            // Tab 2: Daily Sales
-            SquircleNavTabItem(
-                icon = Icons.Default.TrendingUp,
-                label = "Daily Sales",
-                isSelected = selectedTab == HomeNavTab.DailySales,
-                activeBgColor = PastelAmber,
-                activeAccentColor = PastelAmberAccent,
-                onClick = { onSelectTab(HomeNavTab.DailySales) },
-                testTag = "tab_sales",
-                modifier = Modifier.weight(1f)
-            )
+                Spacer(modifier = Modifier.width(72.dp)) // Center gap for elevated circular mic FAB
 
-            // Tab 3: Store Profile / Settings
-            SquircleNavTabItem(
-                icon = Icons.Default.Storefront,
-                label = "My Store",
-                isSelected = selectedTab == HomeNavTab.Profile,
-                activeBgColor = PastelMint,
-                activeAccentColor = PastelMintAccent,
-                onClick = { onSelectTab(HomeNavTab.Profile) },
-                testTag = "tab_profile",
-                modifier = Modifier.weight(1f)
-            )
+                // Tab 2: Daily Sales (Right)
+                val isSalesSelected = selectedTab == HomeNavTab.DailySales
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                        .clip(CircleShape)
+                        .background(if (isSalesSelected) ParchiPurpleContainer else Color.Transparent)
+                        .clickable { onSelectTab(HomeNavTab.DailySales) }
+                        .padding(horizontal = 14.dp)
+                        .testTag("tab_sales"),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = LucideIcons.TrendingUp,
+                        contentDescription = "Daily Sales",
+                        tint = if (isSalesSelected) ParchiPurpleSupporting else InkMuted,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Daily Sales",
+                        fontSize = 14.sp,
+                        fontWeight = if (isSalesSelected) FontWeight.ExtraBold else FontWeight.Medium,
+                        color = if (isSalesSelected) ParchiPurpleDark else InkMuted
+                    )
+                }
+            }
         }
-    }
-}
 
-@Composable
-private fun SquircleNavTabItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    isSelected: Boolean,
-    activeBgColor: Color,
-    activeAccentColor: Color,
-    onClick: () -> Unit,
-    testTag: String,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .height(44.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(if (isSelected) activeBgColor else Color.Transparent)
-            .clickable { onClick() }
-            .padding(horizontal = 4.dp)
-            .testTag(testTag),
-        contentAlignment = Alignment.Center
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+        // Bulge FAB: Outer Glowing Pulse Ring + Circular Voice Mic FAB
+        Box(
+            modifier = Modifier.offset(y = (-18).dp),
+            contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = label,
-                tint = if (isSelected) activeAccentColor else Color(0xFF64748B),
-                modifier = Modifier.size(19.dp)
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-                text = label,
-                fontSize = 11.5.sp,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                fontFamily = FontFamily.Monospace,
-                color = if (isSelected) activeAccentColor else Color(0xFF64748B)
-            )
+            // Soft halo glow
+            if (isListening) {
+                Box(
+                    modifier = Modifier
+                        .size(76.dp)
+                        .graphicsLayer(scaleX = glowScale, scaleY = glowScale)
+                        .background(ParchiPurpleSupporting.copy(alpha = 0.3f), CircleShape)
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .background(ParchiPurpleSupporting.copy(alpha = 0.15f), CircleShape)
+                )
+            }
+
+            // Circular Voice Mic FAB
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .shadow(12.dp, CircleShape, spotColor = ParchiPurpleSupporting.copy(alpha = 0.5f))
+                    .clip(CircleShape)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(ParchiPurpleSupporting, Color(0xFF8800D6))
+                        )
+                    )
+                    .border(2.dp, ParchiPurplePrimary, CircleShape)
+                    .clickable { onMicClick() }
+                    .testTag("jupiter_mic_fab"),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = if (isListening) LucideIcons.Pause else LucideIcons.Mic,
+                    contentDescription = "Voice Dictation",
+                    tint = Color.White,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
         }
     }
 }
 
 /**
- * Main Receipts Tab: Grouped Past Receipts List
+ * 2-Column Grid for Receipts
  */
 @Composable
-private fun ReceiptsTabContent(
+private fun Receipts2ColumnGridContent(
     bills: List<BillEntity>,
     searchQuery: String,
     onBillClick: (BillEntity) -> Unit,
@@ -496,13 +504,13 @@ private fun ReceiptsTabContent(
                     modifier = Modifier
                         .size(64.dp)
                         .clip(RoundedCornerShape(20.dp))
-                        .background(PastelLavender),
+                        .background(ParchiPurpleLight),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ReceiptLong,
+                        imageVector = LucideIcons.Receipt,
                         contentDescription = "No Receipts",
-                        tint = PastelLavenderAccent,
+                        tint = ParchiPurpleSupporting,
                         modifier = Modifier.size(32.dp)
                     )
                 }
@@ -510,71 +518,64 @@ private fun ReceiptsTabContent(
                 Spacer(modifier = Modifier.height(14.dp))
 
                 Text(
-                    text = if (searchQuery.isNotEmpty()) "No matching receipts" else "No receipts yet",
-                    fontSize = 15.sp,
+                    text = if (searchQuery.isNotEmpty()) "No matching receipts" else "No receipts created yet",
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF0F172A)
+                    color = InkDark
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
                     text = if (searchQuery.isNotEmpty()) "Try searching for a different item or customer name"
-                    else "Tap 'Start Another Receipt' below to dictate your first bill!",
+                    else "Tap the circular mic button below to dictate your first bill!",
                     fontSize = 12.sp,
-                    color = Color(0xFF64748B),
+                    color = InkMuted,
                     textAlign = TextAlign.Center
                 )
             }
         }
     } else {
         val groupedBills = remember(bills) {
-            bills.groupBy { it.dateDisplay.ifEmpty { "Recent Bills" } }
+            bills.groupBy { it.dateDisplay.ifEmpty { "Recent Receipts" } }
         }
 
-        LazyColumn(
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
             modifier = modifier
                 .fillMaxSize()
-                .padding(horizontal = 18.dp),
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             groupedBills.forEach { (dateHeader, dateBills) ->
-                item(key = "header_$dateHeader") {
+                item(span = { GridItemSpan(2) }) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 10.dp, bottom = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(PastelMint)
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = dateHeader.uppercase(Locale.getDefault()),
-                                fontSize = 10.5.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = FontFamily.Monospace,
-                                color = PastelMintAccent
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(8.dp))
-
                         Text(
-                            text = "${dateBills.size} bills • ₹${String.format(Locale.US, "%.0f", dateBills.sumOf { it.totalAmount })}",
-                            fontSize = 11.sp,
+                            text = dateHeader,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace,
+                            color = InkMuted
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "•  ${dateBills.size} Bills",
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             fontFamily = FontFamily.Monospace,
-                            color = Color(0xFF64748B)
+                            color = InkLight
                         )
                     }
                 }
 
                 items(dateBills, key = { it.id }) { bill ->
-                    PastReceiptSquircleCard(
+                    SwipeableReceiptGridCard(
                         bill = bill,
                         onClick = { onBillClick(bill) },
                         onDelete = { onDeleteBill(bill) }
@@ -582,98 +583,118 @@ private fun ReceiptsTabContent(
                 }
             }
 
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
+            item(span = { GridItemSpan(2) }) {
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
 }
 
 /**
- * Squircle Card for each saved Receipt
+ * Swipeable 2-Column Grid Card
  */
 @Composable
-private fun PastReceiptSquircleCard(
+private fun SwipeableReceiptGridCard(
     bill: BillEntity,
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(2.dp, RoundedCornerShape(18.dp), spotColor = Color(0x12000000))
-            .clip(RoundedCornerShape(18.dp))
-            .background(Color.White)
-            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(18.dp))
-            .clickable { onClick() }
-            .padding(14.dp)
-            .testTag("receipt_card_${bill.billNumber}")
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { dismissValue ->
+            if (dismissValue != SwipeToDismissBoxValue.Settled) {
+                onDelete()
+                true
+            } else false
+        }
+    )
+
+    SwipeToDismissBox(
+        state = dismissState,
+        backgroundContent = {
+            val color = if (dismissState.dismissDirection != SwipeToDismissBoxValue.Settled) Color(0xFFEF4444) else Color.Transparent
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(color)
+                    .padding(horizontal = 12.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Icon(
+                    imageVector = LucideIcons.Trash,
+                    contentDescription = "Delete Bill",
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(130.dp)
+                .shadow(2.dp, RoundedCornerShape(18.dp), spotColor = Color(0x12000000))
+                .clip(RoundedCornerShape(18.dp))
+                .background(Color.White)
+                .border(1.2.dp, Color(0xFFE2E8F0), RoundedCornerShape(18.dp))
+                .clickable { onClick() }
+                .padding(12.dp)
+                .testTag("receipt_grid_card_${bill.billNumber}")
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
                         text = "#${bill.billNumber}",
                         fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace,
-                        color = Color(0xFF0F172A)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = bill.formattedDateTime.substringAfter("•").trim(),
-                        fontSize = 11.sp,
-                        fontFamily = FontFamily.Monospace,
-                        color = Color(0xFF64748B)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(3.dp))
-
-                if (bill.customerName.isNotBlank() || bill.customerPhone.isNotBlank()) {
-                    Text(
-                        text = listOf(bill.customerName, bill.customerPhone).filter { it.isNotBlank() }.joinToString(" • "),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = PastelLavenderAccent,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                Text(
-                    text = "${bill.itemCount} items",
-                    fontSize = 11.sp,
-                    color = Color(0xFF94A3B8)
-                )
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = "₹${if (bill.totalAmount % 1.0 == 0.0) bill.totalAmount.toInt() else String.format(Locale.US, "%.2f", bill.totalAmount)}",
-                        fontSize = 15.sp,
                         fontWeight = FontWeight.Black,
                         fontFamily = FontFamily.Monospace,
-                        color = Color(0xFF0F172A)
+                        color = InkDark
+                    )
+
+                    Text(
+                        text = bill.formattedDateTime.substringAfter("•").trim(),
+                        fontSize = 10.sp,
+                        fontFamily = FontFamily.Monospace,
+                        color = InkLight
                     )
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Column {
+                    if (bill.customerName.isNotBlank()) {
+                        Text(
+                            text = bill.customerName,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ParchiPurpleDark,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    Text(
+                        text = "${bill.itemCount} items",
+                        fontSize = 11.sp,
+                        color = InkMuted
+                    )
+                }
 
-                IconButton(
-                    onClick = onDelete,
-                    modifier = Modifier.size(32.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.DeleteOutline,
-                        contentDescription = "Delete",
-                        tint = Color(0xFFCBD5E1),
-                        modifier = Modifier.size(17.dp)
+                    Text(
+                        text = "₹${if (bill.totalAmount % 1.0 == 0.0) bill.totalAmount.toInt() else String.format(Locale.US, "%.2f", bill.totalAmount)}",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Black,
+                        fontFamily = FontFamily.Monospace,
+                        color = InkDark
                     )
                 }
             }
@@ -682,7 +703,7 @@ private fun PastReceiptSquircleCard(
 }
 
 /**
- * Tab 2: Daily Sales Analytics Content
+ * Daily Sales Analytics Tab Content
  */
 @Composable
 private fun DailySalesTabContent(
@@ -699,14 +720,14 @@ private fun DailySalesTabContent(
             .fillMaxSize()
             .padding(horizontal = 18.dp, vertical = 8.dp)
     ) {
-        // Daily Summary Card in Warm Pastel Mint Squircle
+        // Revenue Summary Card in Parchi Soft Purple Tint
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .shadow(3.dp, RoundedCornerShape(22.dp), spotColor = Color(0x14000000))
                 .clip(RoundedCornerShape(22.dp))
-                .background(PastelMint)
-                .border(1.2.dp, PastelMintBorder, RoundedCornerShape(22.dp))
+                .background(ParchiPurpleLight)
+                .border(1.2.dp, ParchiPurpleContainer, RoundedCornerShape(22.dp))
                 .padding(18.dp)
         ) {
             Column {
@@ -716,17 +737,17 @@ private fun DailySalesTabContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "TOTAL SALES REVENUE",
+                        text = "TOTAL STORE REVENUE",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace,
-                        color = PastelMintAccent
+                        color = ParchiPurpleDeep
                     )
                     Icon(
-                        imageVector = Icons.Default.TrendingUp,
+                        imageVector = LucideIcons.TrendingUp,
                         contentDescription = "Sales",
-                        tint = PastelMintAccent,
-                        modifier = Modifier.size(18.dp)
+                        tint = ParchiPurpleSupporting,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
 
@@ -737,7 +758,7 @@ private fun DailySalesTabContent(
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Black,
                     fontFamily = FontFamily.Monospace,
-                    color = Color(0xFF0F172A)
+                    color = InkDark
                 )
 
                 Spacer(modifier = Modifier.height(14.dp))
@@ -754,8 +775,8 @@ private fun DailySalesTabContent(
                             .padding(10.dp)
                     ) {
                         Column {
-                            Text(text = "BILLS ISSUED", fontSize = 9.5.sp, fontFamily = FontFamily.Monospace, color = Color(0xFF64748B))
-                            Text(text = "$totalBills", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
+                            Text(text = "BILLS ISSUED", fontSize = 9.5.sp, fontFamily = FontFamily.Monospace, color = InkMuted)
+                            Text(text = "$totalBills", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = InkDark)
                         }
                     }
 
@@ -767,8 +788,8 @@ private fun DailySalesTabContent(
                             .padding(10.dp)
                     ) {
                         Column {
-                            Text(text = "TOTAL ITEMS", fontSize = 9.5.sp, fontFamily = FontFamily.Monospace, color = Color(0xFF64748B))
-                            Text(text = "$totalItems", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
+                            Text(text = "TOTAL ITEMS", fontSize = 9.5.sp, fontFamily = FontFamily.Monospace, color = InkMuted)
+                            Text(text = "$totalItems", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = InkDark)
                         }
                     }
                 }
@@ -782,7 +803,7 @@ private fun DailySalesTabContent(
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace,
-            color = Color(0xFF475569),
+            color = InkMuted,
             modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
         )
 
@@ -791,144 +812,57 @@ private fun DailySalesTabContent(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(bills, key = { it.id }) { bill ->
-                PastReceiptSquircleCard(
-                    bill = bill,
-                    onClick = { onBillClick(bill) },
-                    onDelete = {}
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(1.dp, RoundedCornerShape(14.dp), spotColor = Color(0x0F000000))
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color.White)
+                        .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(14.dp))
+                        .clickable { onBillClick(bill) }
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(text = "#${bill.billNumber}", fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, color = InkDark)
+                        Text(text = "${bill.itemCount} items • ${bill.formattedDateTime.substringAfter("•").trim()}", fontSize = 11.sp, color = InkMuted)
+                    }
+                    Text(
+                        text = "₹${if (bill.totalAmount % 1.0 == 0.0) bill.totalAmount.toInt() else String.format(Locale.US, "%.2f", bill.totalAmount)}",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Black,
+                        fontFamily = FontFamily.Monospace,
+                        color = InkDark
+                    )
+                }
             }
         }
     }
 }
 
 /**
- * Tab 3: Store Profile & Settings Content
+ * Store Profile & Settings Modal Dialog
  */
 @Composable
-private fun StoreProfileTabContent(
+private fun StoreProfileEditDialog(
     storeName: String,
     storeCategory: String,
     storePhone: String,
-    onSave: (String, String, String) -> Unit,
-    modifier: Modifier = Modifier
+    onDismiss: () -> Unit,
+    onSave: (String, String, String) -> Unit
 ) {
     var editName by remember(storeName) { mutableStateOf(storeName) }
     var editCategory by remember(storeCategory) { mutableStateOf(storeCategory) }
     var editPhone by remember(storePhone) { mutableStateOf(storePhone) }
-    val focusManager = LocalFocusManager.current
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(18.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .shadow(2.dp, RoundedCornerShape(20.dp), spotColor = Color(0x12000000))
-                .clip(RoundedCornerShape(20.dp))
-                .background(Color.White)
-                .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
-                .padding(18.dp)
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text(
-                    text = "STORE INFORMATION",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace,
-                    color = PastelLavenderAccent
-                )
-
-                Column {
-                    Text(
-                        text = "STORE / BUSINESS NAME",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace,
-                        color = Color(0xFF64748B)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = editName,
-                        onValueChange = { editName = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White
-                        )
-                    )
-                }
-
-                Column {
-                    Text(
-                        text = "STORE CATEGORY",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace,
-                        color = Color(0xFF64748B)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = editCategory,
-                        onValueChange = { editCategory = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White
-                        )
-                    )
-                }
-
-                Column {
-                    Text(
-                        text = "STORE PHONE / WHATSAPP",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace,
-                        color = Color(0xFF64748B)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = editPhone,
-                        onValueChange = { editPhone = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White
-                        )
-                    )
-                }
-
-                Button(
-                    onClick = {
-                        focusManager.clearFocus()
-                        onSave(editName, editCategory, editPhone)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF0F172A),
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text(
-                        text = "SAVE STORE PROFILE",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace
-                    )
-                }
-            }
+    CustomerEditDialog(
+        initialName = editName,
+        initialPhone = editPhone,
+        initialHouseNo = editCategory,
+        onDismiss = onDismiss,
+        onSave = { name, phone, cat ->
+            onSave(name.ifBlank { "Manmohani Hatti" }, cat.ifBlank { "General Store" }, phone)
         }
-    }
+    )
 }

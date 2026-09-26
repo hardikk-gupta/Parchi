@@ -60,7 +60,7 @@ object ReceiptPrintHelper {
         totalAmount: Double
     ): String {
         val itemsRows = items.joinToString("\n") { item ->
-            val priceStr = item.price?.let { "₹${if (it % 1.0 == 0.0) it.toInt() else String.format("%.2f", it)}" } ?: "-"
+            val priceStr = item.price?.let { "₹${if (it % 1.0 == 0.0) it.toInt() else String.format("%.2f", it)}" } ?: "&nbsp;"
             val checkmark = if (item.isVerified) "&#10003; " else ""
             """
             <tr>
@@ -72,8 +72,25 @@ object ReceiptPrintHelper {
             """.trimIndent()
         }
 
-        val hasUnpricedItems = items.any { item -> item.price == null }
-        val totalNote = if (hasUnpricedItems) "*(Some items pending price)" else ""
+        val hasCustomerInfo = customerName.isNotBlank() || customerPhone.isNotBlank() || customerHouseNo.isNotBlank()
+        val customerHtml = if (hasCustomerInfo) {
+            val nameLine = if (customerName.isNotBlank()) "<div class=\"customer-field\"><strong>Customer:</strong> ${escapeHtml(customerName)}</div>" else ""
+            val phoneLine = if (customerPhone.isNotBlank()) "<div class=\"customer-field\"><strong>Mobile:</strong> ${escapeHtml(customerPhone)}</div>" else ""
+            val houseLine = if (customerHouseNo.isNotBlank()) "<div class=\"customer-field\"><strong>Flat/House:</strong> ${escapeHtml(customerHouseNo)}</div>" else ""
+            """
+            <div class="meta-section">
+                $nameLine
+                $phoneLine
+                $houseLine
+            </div>
+            """.trimIndent()
+        } else ""
+
+        val grandTotalStr = if (totalAmount > 0.0) {
+            "₹${if (totalAmount % 1.0 == 0.0) totalAmount.toInt() else String.format("%.2f", totalAmount)}"
+        } else {
+            "&nbsp;"
+        }
 
         return """
         <!DOCTYPE html>
@@ -114,12 +131,6 @@ object ReceiptPrintHelper {
                     border-bottom: 1px dashed #000;
                     padding-bottom: 6px;
                 }
-                .meta-row {
-                    display: flex;
-                    justify-content: space-between;
-                    margin-bottom: 2px;
-                    font-size: 12px;
-                }
                 .customer-field {
                     font-size: 12px;
                     margin-bottom: 2px;
@@ -157,24 +168,11 @@ object ReceiptPrintHelper {
             <div class="receipt-container">
                 <div class="header">
                     <div class="store-title">${escapeHtml(storeName)}</div>
-                    <div class="sub-title">GROCERY PURCHASE BILL / RECEIPT</div>
+                    <div class="sub-title">PARCHI CASH RECEIPT</div>
+                    <div style="font-size: 11px; margin-top: 4px;">$dateTime • #$billNumber</div>
                 </div>
 
-                <div class="meta-section">
-                    <div class="meta-row">
-                        <span><strong>Bill No:</strong> #$billNumber</span>
-                        <span>$dateTime</span>
-                    </div>
-                    <div class="customer-field">
-                        <strong>Customer:</strong> ${if (customerName.isNotBlank()) escapeHtml(customerName) else "____________________"}
-                    </div>
-                    <div class="customer-field">
-                        <strong>Mobile No:</strong> ${if (customerPhone.isNotBlank()) escapeHtml(customerPhone) else "____________________"}
-                    </div>
-                    <div class="customer-field">
-                        <strong>House / Flat:</strong> ${if (customerHouseNo.isNotBlank()) escapeHtml(customerHouseNo) else "____________________"}
-                    </div>
-                </div>
+                $customerHtml
 
                 <table>
                     <thead>
@@ -192,9 +190,8 @@ object ReceiptPrintHelper {
 
                 <div class="total-section">
                     <span>GRAND TOTAL</span>
-                    <span>₹${if (totalAmount % 1.0 == 0.0) totalAmount.toInt() else String.format("%.2f", totalAmount)}</span>
+                    <span>$grandTotalStr</span>
                 </div>
-                ${if (totalNote.isNotBlank()) "<div style='font-size: 10px; text-align: right; margin-top: 2px;'>$totalNote</div>" else ""}
 
                 <div class="footer">
                     <div>* Verified Grocery List *</div>

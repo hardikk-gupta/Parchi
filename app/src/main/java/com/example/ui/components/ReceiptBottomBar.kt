@@ -14,11 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Print
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,7 +36,7 @@ import com.example.ui.theme.PastelSkyAccent
 
 /**
  * Bottom controls for Receipt Screen.
- * Uses consistent squircle design language (RoundedCornerShape 16dp) with modern pastel accents.
+ * Displays identical circular RippleRecordButton when dictating, or action pill controls when finished.
  */
 @Composable
 fun ReceiptBottomBar(
@@ -63,7 +58,7 @@ fun ReceiptBottomBar(
         contentAlignment = Alignment.Center
     ) {
         if (!isReceiptFinished || isListening || isProcessing) {
-            // STATE 1: Before / While Recording / While Processing
+            // STATE 1: Dictating or Processing (Uses universal circular mic button with pulse rings)
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -77,7 +72,7 @@ fun ReceiptBottomBar(
                 )
             }
         } else {
-            // STATE 2: Receipt Completed (Squircle buttons with subtle pastel accents)
+            // STATE 2: Receipt Completed (Action pills with Lucide Icons)
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -87,39 +82,8 @@ fun ReceiptBottomBar(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Back Squircle Button (< BACK)
-                    Box(
-                        modifier = Modifier
-                            .weight(0.9f)
-                            .height(48.dp)
-                            .shadow(2.dp, RoundedCornerShape(16.dp), spotColor = Color(0x14000000))
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color.White)
-                            .border(1.2.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
-                            .clickable { onBackClick() }
-                            .padding(horizontal = 8.dp)
-                            .testTag("pill_back_button"),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
-                                tint = Color(0xFF0F172A),
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "BACK",
-                                fontSize = 11.5.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = FontFamily.Monospace,
-                                color = Color(0xFF0F172A)
-                            )
-                        }
-                    }
 
-                    // Edit Squircle Button
+                    // Edit Button
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -135,12 +99,12 @@ fun ReceiptBottomBar(
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = Icons.Default.Edit,
+                                imageVector = LucideIcons.Edit,
                                 contentDescription = "Edit",
                                 tint = PastelLavenderAccent,
-                                modifier = Modifier.size(15.dp)
+                                modifier = Modifier.size(16.dp)
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "EDIT",
                                 fontSize = 11.5.sp,
@@ -151,7 +115,7 @@ fun ReceiptBottomBar(
                         }
                     }
 
-                    // Print Squircle Button
+                    // Print Button
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -167,12 +131,12 @@ fun ReceiptBottomBar(
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = Icons.Default.Print,
+                                imageVector = LucideIcons.Print,
                                 contentDescription = "Print",
                                 tint = PastelSkyAccent,
                                 modifier = Modifier.size(16.dp)
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "PRINT",
                                 fontSize = 11.5.sp,
@@ -183,7 +147,7 @@ fun ReceiptBottomBar(
                         }
                     }
 
-                    // Share Squircle Button
+                    // Share Button
                     Box(
                         modifier = Modifier
                             .weight(1.1f)
@@ -199,12 +163,12 @@ fun ReceiptBottomBar(
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = Icons.Default.Share,
+                                imageVector = LucideIcons.Share,
                                 contentDescription = "Share",
                                 tint = PastelMintAccent,
                                 modifier = Modifier.size(16.dp)
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "SHARE",
                                 fontSize = 11.5.sp,

@@ -165,7 +165,7 @@ fun BillItemRow(
                     )
                 } else {
                     Text(
-                        text = "— —",
+                        text = "      ",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = InkFaint,

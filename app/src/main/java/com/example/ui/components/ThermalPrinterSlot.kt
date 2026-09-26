@@ -41,53 +41,64 @@ fun ThermalPrinterDispenser(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Printer Slot Machine Bar at the top
+        // 3D Thermal Printer Slot Machine Bar at the top
         Box(
             modifier = Modifier
-                .fillMaxWidth(0.92f)
-                .height(28.dp)
-                .shadow(6.dp, RoundedCornerShape(14.dp), spotColor = Color(0x33000000))
-                .clip(RoundedCornerShape(14.dp))
+                .fillMaxWidth(0.94f)
+                .height(34.dp)
+                .shadow(10.dp, RoundedCornerShape(16.dp), spotColor = Color(0x40000000))
+                .clip(RoundedCornerShape(16.dp))
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFF141416),
-                            Color(0xFF1F2024),
-                            Color(0xFF0F0F11)
+                            Color(0xFF22242A),
+                            Color(0xFF15161A),
+                            Color(0xFF0B0C0E)
                         )
                     )
                 )
-                .border(1.5.dp, Color(0xFF2E3036), RoundedCornerShape(14.dp)),
+                .border(1.5.dp, Color(0xFF3B3E48), RoundedCornerShape(16.dp)),
             contentAlignment = Alignment.Center
         ) {
-            // Inner hollow dark dispenser slit
+            // Metallic glossy highlight line
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.86f)
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Color(0xFF050505))
-                    .border(0.5.dp, Color(0xFF3F3F46), RoundedCornerShape(4.dp))
+                    .fillMaxWidth(0.90f)
+                    .height(2.dp)
+                    .align(Alignment.TopCenter)
+                    .padding(top = 3.dp)
+                    .background(Color(0x33FFFFFF))
+            )
+
+            // Inner 3D hollow dark dispenser slit
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.88f)
+                    .height(10.dp)
+                    .shadow(4.dp, RoundedCornerShape(5.dp))
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(Color(0xFF050507))
+                    .border(1.dp, Color(0xFF27272A), RoundedCornerShape(5.dp))
             )
         }
 
-        // Receipt Paper coming out of the slot (overlapping by -8.dp to appear feeding from the slot)
+        // Crisp receipt paper feeding out from the 3D slot
         Box(
             modifier = Modifier
-                .offset(y = (-8).dp)
-                .fillMaxWidth(0.88f)
+                .offset(y = (-10).dp)
+                .fillMaxWidth(0.90f)
                 .shadow(
-                    elevation = 12.dp,
-                    shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 4.dp, bottomEnd = 4.dp),
-                    ambientColor = Color(0x26000000),
-                    spotColor = Color(0x33000000)
+                    elevation = 14.dp,
+                    shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 6.dp, bottomEnd = 6.dp),
+                    ambientColor = Color(0x33000000),
+                    spotColor = Color(0x40000000)
                 )
-                .background(Color.White)
+                .background(Color(0xFFFFFDF9))
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp, start = 18.dp, end = 18.dp, bottom = 12.dp)
+                    .padding(top = 18.dp, start = 18.dp, end = 18.dp, bottom = 12.dp)
             ) {
                 paperContent()
 
@@ -97,7 +108,7 @@ fun ThermalPrinterDispenser(
                 ThermalPaperTearEdge(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(10.dp)
+                        .height(12.dp)
                 )
             }
         }

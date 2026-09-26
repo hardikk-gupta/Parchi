@@ -19,9 +19,9 @@ object VoiceBillParser {
 
     private const val TAG = "VoiceBillParser"
 
-    // Recognized units for quantities
+    // Recognized units for quantities (supports ASCII and Devanagari Unicode word boundaries)
     val UNIT_KEYWORD_PATTERN =
-        """(?i)\b(\d+(?:\.\d+)?)\s*(kg|kgs|kilo|kilos|kilogram|kilograms|gm|gms|gram|grams|g|litre|litres|liter|liters|lt|l|ml|packet|packets|pkt|pkts|pouch|pouches|pudhiya|piece|pieces|pc|pcs|nag|dane|dozen|dozens|darjan|bottle|bottles|botal|box|boxes|dabba|dibba|tin|tins|can|cans|bori|katta|bag|bags|किलो|किग्रा|ग्राम|ग्रा|लीटर|ली|मिली|पैकेट|पुड़िया|पीस|नग|दाने|दर्जन|बोतल|डिब्बा|डब्बा|टिन|कैन|बोरी|कट्टा|थैली)\b"""
+        """(?iu)(?:^|\b)(\d+(?:\.\d+)?)\s*(kg|kgs|kilo|kilos|kilogram|kilograms|gm|gms|gram|grams|g|litre|litres|liter|liters|lt|l|ml|packet|packets|pkt|pkts|pouch|pouches|pudhiya|piece|pieces|pc|pcs|nag|dane|dozen|dozens|darjan|bottle|bottles|botal|box|boxes|dabba|dibba|tin|tins|can|cans|bori|katta|bag|bags|किलो|किग्रा|ग्राम|ग्रा|लीटर|ली|मिली|पैकेट|पुड़िया|पीस|नग|दाने|दर्जन|बोतल|डिब्बा|डब्बा|टिन|कैन|बोरी|कट्टा|थैली)(?:\b|(?<=[\u0900-\u097F])|(?=[\u0900-\u097F]))"""
 
     private val UNIT_REGEX = UNIT_KEYWORD_PATTERN.toRegex()
 

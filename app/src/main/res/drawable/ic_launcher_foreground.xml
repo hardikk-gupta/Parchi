@@ -4,63 +4,22 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    
-    <!-- Receipt Card Base (Centered in 66dp viewport: from x=27 to x=81, y=24 to y=84) -->
-    <path
-        android:fillColor="#FFFDF7"
-        android:pathData="M32,24 L76,24 A4,4 0 0,1 80,28 L80,82 L76,79 L72,82 L68,79 L64,82 L60,79 L56,82 L52,79 L48,82 L44,79 L40,82 L36,79 L32,82 L28,79 L28,28 A4,4 0 0,1 32,24 Z" />
-    
-    <!-- Receipt Top Store Header Bar -->
-    <path
-        android:fillColor="#E2A63B"
-        android:pathData="M35,32 L73,32 A2,2 0 0,1 75,34 L75,36 A2,2 0 0,1 73,38 L35,38 A2,2 0 0,1 33,36 L33,34 A2,2 0 0,1 35,32 Z" />
-    
-    <!-- Receipt Item Lines (S.No, Item, Qty, Price lines) -->
-    <path
-        android:fillColor="#CBD5E1"
-        android:pathData="M35,43 L45,43 A1.5,1.5 0 0,1 46.5,44.5 L46.5,44.5 A1.5,1.5 0 0,1 45,46 L35,46 A1.5,1.5 0 0,1 33.5,44.5 L33.5,44.5 A1.5,1.5 0 0,1 35,43 Z" />
-    <path
-        android:fillColor="#64748B"
-        android:pathData="M50,43 L73,43 A1.5,1.5 0 0,1 74.5,44.5 L74.5,44.5 A1.5,1.5 0 0,1 73,46 L50,46 A1.5,1.5 0 0,1 48.5,44.5 L48.5,44.5 A1.5,1.5 0 0,1 50,43 Z" />
-
-    <path
-        android:fillColor="#CBD5E1"
-        android:pathData="M35,50 L45,50 A1.5,1.5 0 0,1 46.5,51.5 L46.5,51.5 A1.5,1.5 0 0,1 45,53 L35,53 A1.5,1.5 0 0,1 33.5,51.5 L33.5,51.5 A1.5,1.5 0 0,1 35,50 Z" />
-    <path
-        android:fillColor="#64748B"
-        android:pathData="M50,50 L73,50 A1.5,1.5 0 0,1 74.5,51.5 L74.5,51.5 A1.5,1.5 0 0,1 73,53 L50,53 A1.5,1.5 0 0,1 48.5,51.5 L48.5,51.5 A1.5,1.5 0 0,1 50,50 Z" />
-
-    <path
-        android:fillColor="#CBD5E1"
-        android:pathData="M35,57 L45,57 A1.5,1.5 0 0,1 46.5,58.5 L46.5,58.5 A1.5,1.5 0 0,1 45,60 L35,60 A1.5,1.5 0 0,1 33.5,58.5 L33.5,58.5 A1.5,1.5 0 0,1 35,57 Z" />
-    <path
-        android:fillColor="#64748B"
-        android:pathData="M50,57 L65,57 A1.5,1.5 0 0,1 66.5,58.5 L66.5,58.5 A1.5,1.5 0 0,1 65,60 L50,60 A1.5,1.5 0 0,1 48.5,58.5 L48.5,58.5 A1.5,1.5 0 0,1 50,57 Z" />
-
-    <!-- Receipt Total Line -->
-    <path
-        android:fillColor="#334155"
-        android:pathData="M35,66 L73,66 A1.5,1.5 0 0,1 74.5,67.5 L74.5,67.5 A1.5,1.5 0 0,1 73,69 L35,69 A1.5,1.5 0 0,1 33.5,67.5 L33.5,67.5 A1.5,1.5 0 0,1 35,66 Z" />
-
-    <!-- Voice Recording Mic Floating Badge -->
-    <path
-        android:fillColor="#F43F5E"
-        android:pathData="M64,66 A15,15 0 1,0 94,66 A15,15 0 1,0 64,66 Z" />
-    
-    <!-- Mic icon inside badge -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M79,60 C80.66,60 82,61.34 82,63 L82,67 C82,68.66 80.66,70 79,70 C77.34,70 76,68.66 76,67 L76,63 C76,61.34 77.34,60 79,60 Z" />
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.8"
-        android:strokeLineCap="round"
-        android:pathData="M74,65 C74,67.76 76.24,70 79,70 C81.76,70 84,67.76 84,65" />
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.8"
-        android:strokeLineCap="round"
-        android:pathData="M79,70 L79,73.5 M76.5,73.5 L81.5,73.5" />
+    <group
+        android:scaleX="2.75"
+        android:scaleY="2.75"
+        android:translateX="21"
+        android:translateY="21">
+        <!-- Thermal paper receipt background path (#E7BBFF) -->
+        <path
+            android:fillColor="#E7BBFF"
+            android:pathData="M4 2.99674C4 2.73153 4.10536 2.47717 4.29289 2.28964C4.48043 2.1021 4.73478 1.99674 5 1.99674C5.24762 1.99538 5.49048 2.06477 5.7 2.19674L6.633 2.79674C6.84204 2.93032 7.08493 3.0013 7.333 3.0013C7.58107 3.0013 7.82396 2.93032 8.033 2.79674L8.967 2.19674C9.17604 2.06317 9.41893 1.99219 9.667 1.99219C9.91507 1.99219 10.158 2.06317 10.367 2.19674L11.3 2.79674C11.509 2.93032 11.7519 3.0013 12 3.0013C12.2481 3.0013 12.491 2.93032 12.7 2.79674L13.633 2.19674C13.842 2.06317 14.0849 1.99219 14.333 1.99219C14.5811 1.99219 14.824 2.06317 15.033 2.19674L15.967 2.79674C16.176 2.93032 16.4189 3.0013 16.667 3.0013C16.9151 3.0013 17.158 2.93032 17.367 2.79674L18.3 2.19674C18.5095 2.06477 18.7524 1.99538 19 1.99674C19.2652 1.99674 19.5196 2.1021 19.7071 2.28964C19.8946 2.47717 20 2.73153 20 2.99674V20.9967C20 21.262 19.8946 21.5163 19.7071 21.7038C19.5196 21.8914 19.2652 21.9967 19 21.9967C18.7524 21.9981 18.5095 21.9287 18.3 21.7967L17.367 21.1967C17.158 21.0632 16.9151 20.9922 16.667 20.9922C16.4189 20.9922 16.176 21.0632 15.967 21.1967L15.033 21.7967C14.824 21.9303 14.5811 22.0013 14.333 22.0013C14.0849 22.0013 13.842 21.9303 13.633 21.7967L12.7 21.1967C12.491 21.0632 12.2481 20.9922 12 20.9922C11.7519 20.9922 11.509 21.0632 11.3 21.1967L10.367 21.7967C10.158 21.9303 9.91507 22.0013 9.667 22.0013C9.41893 22.0013 9.17604 21.9303 8.967 21.7967L8.033 21.1967C7.82396 21.0632 7.58107 20.9922 7.333 20.9922C7.08493 20.9922 6.84204 21.0632 6.633 21.1967L5.7 21.7967C5.49048 21.9287 5.24762 21.9981 5 21.9967C4.73478 21.9967 4.48043 21.8914 4.29289 21.7038C4.10536 21.5163 4 21.262 4 20.9967V2.99674Z" />
+        <!-- Receipt lines stroke (#A500FF) -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#A500FF"
+            android:strokeWidth="1.5"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M13 16H8M14 8H8M16 12H8" />
+    </group>
 </vector>

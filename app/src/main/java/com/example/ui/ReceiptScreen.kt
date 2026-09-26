@@ -5,15 +5,8 @@ import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,16 +21,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -59,14 +46,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.model.BillItem
-import com.example.ui.components.CustomerEditDialog
-import com.example.ui.components.EditItemDialog
-import com.example.ui.components.ManualEditReceiptSheet
+import com.example.ui.components.AppLogoIcon
+import com.example.ui.components.LucideIcons
 import com.example.ui.components.MinimalThermalReceiptContent
 import com.example.ui.components.ReceiptBottomBar
-import com.example.ui.components.ReceiptEditChoiceDialog
 import com.example.ui.components.ThermalPrinterDispenser
+import com.example.ui.theme.InkDark
+import com.example.ui.theme.ParchiPurplePrimary
+import com.example.ui.theme.ParchiPurpleSupporting
 import com.example.util.ReceiptPrintHelper
 import com.example.util.ReceiptShareHelper
 
@@ -78,7 +65,6 @@ fun ReceiptScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
-    var showManualAddDialog by remember { mutableStateOf(false) }
 
     // Audio Permission Launcher
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -105,14 +91,14 @@ fun ReceiptScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF7F8FB))
+            .background(Color(0xFFFAF7FC))
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Top Navigation Bar: Squircle back button
+            // Top Navigation Bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -120,7 +106,7 @@ fun ReceiptScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Back Button (Squircle)
+                // Back Button with Lucide ArrowLeft
                 IconButton(
                     onClick = { viewModel.navigateToHome() },
                     modifier = Modifier
@@ -132,53 +118,28 @@ fun ReceiptScreen(
                         .testTag("receipt_top_back_button")
                 ) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        imageVector = LucideIcons.ArrowLeft,
                         contentDescription = "Back to home",
-                        tint = Color(0xFF0F172A),
+                        tint = InkDark,
                         modifier = Modifier.size(18.dp)
                     )
                 }
 
-                // Status pill or title (Squircle)
-                if (uiState.isProcessing) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFF0F172A))
-                            .padding(horizontal = 12.dp, vertical = 5.dp)
-                    ) {
-                        Text(
-                            text = "CREATING RECEIPT...",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace,
-                            color = Color.White
-                        )
-                    }
-                } else if (uiState.isListening) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFFFE4E6))
-                            .border(1.dp, Color(0xFFFECDD3), RoundedCornerShape(12.dp))
-                            .padding(horizontal = 12.dp, vertical = 5.dp)
-                    ) {
-                        Text(
-                            text = "● RECORDING...",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace,
-                            color = Color(0xFFE11D48)
-                        )
-                    }
-                } else {
+                // Brand Logo & Title
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    AppLogoIcon(
+                        size = 22.dp,
+                        fillColor = ParchiPurplePrimary,
+                        strokeColor = ParchiPurpleSupporting
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "PARCHI RECEIPT",
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace,
                         letterSpacing = 1.sp,
-                        color = Color(0xFF64748B)
+                        color = InkDark
                     )
                 }
 
@@ -195,7 +156,6 @@ fun ReceiptScreen(
             ) {
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // Realistic 3D Thermal Printer Slot from reference image
                 ThermalPrinterDispenser(
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -219,7 +179,7 @@ fun ReceiptScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Bottom Section: Single Record Button (before finished) or Pill Navbar (when finished)
+            // Bottom Controls: Circular Mic Button (when dictating) or Action Pills (when finished)
             ReceiptBottomBar(
                 isReceiptFinished = uiState.isReceiptFinished || uiState.items.isNotEmpty(),
                 isListening = uiState.isListening,
@@ -271,91 +231,6 @@ fun ReceiptScreen(
                             totalAmount = uiState.totalAmount
                         )
                     }
-                }
-            )
-        }
-
-        // Snackbar Host
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 100.dp)
-        )
-
-        // Customer Details Edit Dialog
-        if (uiState.showCustomerEditDialog) {
-            CustomerEditDialog(
-                initialName = uiState.customerName,
-                initialPhone = uiState.customerPhone,
-                initialHouseNo = uiState.customerHouseNo,
-                onDismiss = { viewModel.dismissCustomerEdit() },
-                onSave = { name, phone, houseNo ->
-                    viewModel.saveCustomerInfo(name, phone, houseNo)
-                }
-            )
-        }
-
-        // Edit Choice Dialog (Speak or Manual)
-        if (uiState.showEditOptionsDialog) {
-            ReceiptEditChoiceDialog(
-                onDismiss = { viewModel.dismissEditOptions() },
-                onSelectSpeak = {
-                    val permission = ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.RECORD_AUDIO
-                    )
-                    if (permission == PackageManager.PERMISSION_GRANTED) {
-                        viewModel.onSelectEditSpeak()
-                    } else {
-                        viewModel.dismissEditOptions()
-                        permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                    }
-                },
-                onSelectManual = { viewModel.onSelectEditManual() }
-            )
-        }
-
-        // Manual Edit Sheet
-        if (uiState.showManualEditSheet) {
-            ManualEditReceiptSheet(
-                items = uiState.items,
-                onDismiss = { viewModel.dismissManualEditSheet() },
-                onEditItem = { viewModel.openEditItem(it) },
-                onDeleteItem = { viewModel.deleteItem(it) },
-                onAddNewItem = { showManualAddDialog = true }
-            )
-        }
-
-        // Single Item Edit Dialog
-        uiState.editingItem?.let { itemToEdit ->
-            EditItemDialog(
-                item = itemToEdit,
-                onDismiss = { viewModel.dismissEditItem() },
-                onSave = { updated -> viewModel.updateItem(updated) }
-            )
-        }
-
-        // Manual Add Item Dialog
-        if (showManualAddDialog) {
-            val dummyItem = BillItem(
-                serialNumber = uiState.items.size + 1,
-                itemName = "",
-                weightOrQuantity = "",
-                price = null
-            )
-            EditItemDialog(
-                item = dummyItem,
-                onDismiss = { showManualAddDialog = false },
-                onSave = { newItem ->
-                    if (newItem.itemName.isNotBlank()) {
-                        viewModel.addNewItemDirectly(
-                            itemName = newItem.itemName,
-                            weightOrQty = newItem.weightOrQuantity.ifEmpty { "1 item" },
-                            price = newItem.price
-                        )
-                    }
-                    showManualAddDialog = false
                 }
             )
         }

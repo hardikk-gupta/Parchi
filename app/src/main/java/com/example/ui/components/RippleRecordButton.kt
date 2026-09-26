@@ -1,6 +1,5 @@
 package com.example.ui.components
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -15,22 +14,15 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,12 +41,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.MicPulsingRed
-import com.example.ui.theme.MicRecordRed
+import com.example.ui.theme.InkMuted
+import com.example.ui.theme.ParchiPurplePrimary
+import com.example.ui.theme.ParchiPurpleSupporting
 
 /**
- * Visual indicator for voice input featuring a prominent 'record' button with a
- * multi-ring ripple effect animation that signals when the app is actively listening for dictation.
+ * Universal Circular Voice Recording Mic Component with Lucide Icons and Pulse Animations.
+ * Shared across both Home screen and Receipt screen for unified visual identity.
  */
 @Composable
 fun RippleRecordButton(
@@ -70,15 +63,15 @@ fun RippleRecordButton(
     val isPressed by interactionSource.collectIsPressedAsState()
 
     val buttonScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.94f else 1.0f,
+        targetValue = if (isPressed) 0.92f else 1.0f,
         animationSpec = spring(dampingRatio = 0.6f, stiffness = 800f),
         label = "btn_press_scale"
     )
 
-    // Infinite transitions for radiating ripple effect when listening
+    // Pulse & Ripple Infinite Transitions
     val infiniteTransition = rememberInfiniteTransition(label = "voice_ripples")
 
-    // First ripple wave (starts immediately)
+    // Ripple wave 1
     val ripple1Scale by infiniteTransition.animateFloat(
         initialValue = 1.0f,
         targetValue = 2.1f,
@@ -89,7 +82,7 @@ fun RippleRecordButton(
         label = "ripple_1_scale"
     )
     val ripple1Alpha by infiniteTransition.animateFloat(
-        initialValue = 0.65f,
+        initialValue = 0.7f,
         targetValue = 0.0f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 1400, easing = LinearEasing),
@@ -98,7 +91,7 @@ fun RippleRecordButton(
         label = "ripple_1_alpha"
     )
 
-    // Second ripple wave (delayed phase)
+    // Ripple wave 2
     val ripple2Scale by infiniteTransition.animateFloat(
         initialValue = 1.0f,
         targetValue = 2.6f,
@@ -118,27 +111,7 @@ fun RippleRecordButton(
         label = "ripple_2_alpha"
     )
 
-    // Third outer ripple wave (wider aura)
-    val ripple3Scale by infiniteTransition.animateFloat(
-        initialValue = 1.0f,
-        targetValue = 3.1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 2200, delayMillis = 700, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "ripple_3_scale"
-    )
-    val ripple3Alpha by infiniteTransition.animateFloat(
-        initialValue = 0.35f,
-        targetValue = 0.0f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 2200, delayMillis = 700, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "ripple_3_alpha"
-    )
-
-    // Center button pulsating scale when listening
+    // Center button pulse
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 1.0f,
         targetValue = 1.08f,
@@ -149,10 +122,7 @@ fun RippleRecordButton(
         label = "center_pulse"
     )
 
-    val buttonBgColor by animateColorAsState(
-        targetValue = if (isListening) MicPulsingRed else MicRecordRed,
-        label = "btn_bg_color"
-    )
+    val primaryBgColor = ParchiPurpleSupporting // #A500FF
 
     Column(
         modifier = modifier
@@ -160,101 +130,63 @@ fun RippleRecordButton(
             .padding(vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Active listening status chip with pulsing dot
-        if (isListening) {
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(Color(0xFFFFF1F2))
-                    .border(1.dp, Color(0xFFFECDD3), RoundedCornerShape(20.dp))
-                    .padding(horizontal = 14.dp, vertical = 6.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .clip(CircleShape)
-                            .background(MicRecordRed)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (liveTranscript.isNotBlank()) "Hearing: \"$liveTranscript\"" else "Recording speech... Tap to stop & create bill",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MicPulsingRed
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(10.dp))
-        }
-
-        // Ripple Container
+        // Circular Ripple & Button Container
         Box(
             modifier = Modifier
                 .size(90.dp)
                 .testTag(testTag),
             contentAlignment = Alignment.Center
         ) {
-            // Expanding Ripple Rings (Visible only when actively listening)
+            // Radiating pulse rings (Visible only during active voice recording)
             if (isListening) {
-                // Wave 3 (widest ring)
-                Box(
-                    modifier = Modifier
-                        .size(64.dp)
-                        .scale(ripple3Scale)
-                        .clip(RoundedCornerShape(26.dp))
-                        .background(MicRecordRed.copy(alpha = ripple3Alpha))
-                        .border(1.5.dp, Color(0xFFF43F5E).copy(alpha = ripple3Alpha), RoundedCornerShape(26.dp))
-                )
-
-                // Wave 2 (middle ring)
+                // Wave 2
                 Box(
                     modifier = Modifier
                         .size(64.dp)
                         .scale(ripple2Scale)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(MicRecordRed.copy(alpha = ripple2Alpha))
-                        .border(1.8.dp, Color(0xFFFB7185).copy(alpha = ripple2Alpha), RoundedCornerShape(24.dp))
+                        .clip(CircleShape)
+                        .background(ParchiPurpleSupporting.copy(alpha = ripple2Alpha * 0.4f))
+                        .border(1.8.dp, ParchiPurplePrimary.copy(alpha = ripple2Alpha), CircleShape)
                 )
 
-                // Wave 1 (inner core ring)
+                // Wave 1
                 Box(
                     modifier = Modifier
                         .size(64.dp)
                         .scale(ripple1Scale)
-                        .clip(RoundedCornerShape(22.dp))
-                        .background(MicRecordRed.copy(alpha = ripple1Alpha))
-                        .border(2.dp, Color.White.copy(alpha = ripple1Alpha), RoundedCornerShape(22.dp))
+                        .clip(CircleShape)
+                        .background(ParchiPurpleSupporting.copy(alpha = ripple1Alpha * 0.5f))
+                        .border(2.dp, ParchiPurplePrimary.copy(alpha = ripple1Alpha), CircleShape)
                 )
             }
 
-            // Tactile 3D shadow under center button
+            // Tactile shadow under circular button
             Box(
                 modifier = Modifier
                     .size(68.dp)
                     .offset { IntOffset(0, 4.dp.roundToPx()) }
-                    .clip(RoundedCornerShape(22.dp))
-                    .background(Color.Black.copy(alpha = 0.25f))
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.2f))
             )
 
-            // Main Core Record Button (Squircle)
+            // Core Circular Record Button
             Box(
                 modifier = Modifier
                     .size(68.dp)
                     .scale(if (isListening) pulseScale * buttonScale else buttonScale)
-                    .clip(RoundedCornerShape(22.dp))
+                    .clip(CircleShape)
                     .background(
                         Brush.verticalGradient(
                             colors = listOf(
-                                buttonBgColor,
-                                buttonBgColor.copy(alpha = 0.85f)
+                                primaryBgColor,
+                                Color(0xFF8800D6)
                             )
                         )
                     )
                     .border(
                         width = if (isListening) 3.dp else 2.dp,
-                        color = if (isListening) Color(0xFFFFF1F2) else Color(0xFFFF8599),
-                        shape = RoundedCornerShape(22.dp)
+                        color = ParchiPurplePrimary,
+                        shape = CircleShape
                     )
                     .clickable(
                         interactionSource = interactionSource,
@@ -266,27 +198,24 @@ fun RippleRecordButton(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = if (isListening) Icons.Default.Stop else Icons.Default.Mic,
-                    contentDescription = if (isListening) "Stop Recording" else "Start Recording",
+                    imageVector = if (isListening) LucideIcons.Pause else LucideIcons.Mic,
+                    contentDescription = if (isListening) "Pause Recording" else "Start Voice Dictation",
                     tint = Color.White,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(30.dp)
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
-
-        // Descriptive label below button
-        Text(
-            text = when {
-                isProcessing -> "CREATING RECEIPT..."
-                isListening -> "RECORDING AUDIO... TAP TO FINISH"
-                else -> "TAP TO SPEAK (HINDI / ENG)"
-            },
-            fontSize = 12.sp,
-            fontWeight = FontWeight.ExtraBold,
-            letterSpacing = 0.8.sp,
-            color = if (isListening) MicPulsingRed else Color(0xFF1E293B)
-        )
+        // Display transcript text in distinct grey (#64748B) ONLY during recording or processing
+        if (isListening || isProcessing) {
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = if (isProcessing) "CREATING RECEIPT..." else if (liveTranscript.isNotBlank()) "Hearing: \"$liveTranscript\"" else "TAP TO PAUSE",
+                fontSize = 11.5.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.6.sp,
+                color = InkMuted // High visibility grey (#64748B)
+            )
+        }
     }
 }

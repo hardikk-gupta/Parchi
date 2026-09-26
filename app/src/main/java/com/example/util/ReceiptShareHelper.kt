@@ -21,34 +21,38 @@ object ReceiptShareHelper {
     ): String {
         val sb = StringBuilder()
         sb.append("🧾 *${storeName.uppercase()}*\n")
-        sb.append("Grocery Bill / Cash Receipt\n")
+        sb.append("Parchi Cash Receipt\n")
         sb.append("━━━━━━━━━━━━━━━━━━━━━━━━━\n")
-        sb.append("📅 Date: $dateTime\n")
-        sb.append("📄 Bill No: #$billNumber\n")
+        sb.append("📅 $dateTime • #$billNumber\n")
 
-        sb.append("👤 Customer: ${if (customerName.isNotBlank()) customerName else "________________"}\n")
-        sb.append("📱 Mobile: ${if (customerPhone.isNotBlank()) customerPhone else "________________"}\n")
-        sb.append("🏠 House No: ${if (customerHouseNo.isNotBlank()) customerHouseNo else "________________"}\n")
+        if (customerName.isNotBlank()) {
+            sb.append("👤 Customer: $customerName\n")
+        }
+        if (customerPhone.isNotBlank()) {
+            sb.append("📱 Mobile: $customerPhone\n")
+        }
+        if (customerHouseNo.isNotBlank()) {
+            sb.append("🏠 House/Flat: $customerHouseNo\n")
+        }
+
         sb.append("━━━━━━━━━━━━━━━━━━━━━━━━━\n")
         sb.append(String.format("%-4s %-16s %-8s %s\n", "No.", "Item", "Qty/Wt", "Price"))
         sb.append("─────────────────────────\n")
 
         for (item in items) {
-            val priceStr = item.price?.let { "₹${if (it % 1.0 == 0.0) it.toInt() else String.format("%.2f", it)}" } ?: "[--]"
+            val priceStr = item.price?.let { "₹${if (it % 1.0 == 0.0) it.toInt() else String.format("%.2f", it)}" } ?: "   "
             val check = if (item.isVerified) "✓ " else ""
             sb.append("${item.serialNumber}. $check${item.itemName} (${item.weightOrQuantity}) : $priceStr\n")
         }
 
         sb.append("━━━━━━━━━━━━━━━━━━━━━━━━━\n")
-        val formattedTotal = if (totalAmount % 1.0 == 0.0) totalAmount.toInt().toString() else String.format("%.2f", totalAmount)
-        sb.append("💰 *TOTAL: ₹$formattedTotal*\n")
-
-        val unpricedCount = items.count { it.price == null }
-        if (unpricedCount > 0) {
-            sb.append("*(Note: $unpricedCount item(s) price pending)*\n")
+        val formattedTotal = if (totalAmount > 0.0) {
+            "₹${if (totalAmount % 1.0 == 0.0) totalAmount.toInt().toString() else String.format("%.2f", totalAmount)}"
+        } else {
+            ""
         }
-
-        sb.append("✅ Verified by Store\n")
+        sb.append("💰 *TOTAL: $formattedTotal*\n")
+        sb.append("✅ PARCHI Verified\n")
         sb.append("🙏 Thank you for shopping with us!\n")
 
         return sb.toString()

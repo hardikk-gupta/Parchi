@@ -51,7 +51,7 @@ import com.example.model.BillItem
  */
 @Composable
 fun MinimalThermalReceiptContent(
-    storeName: String = "MANMOHAN DI HATTI",
+    storeName: String = "MANMOHANI HATTI",
     dateTime: String,
     billNumber: String,
     customerName: String,
@@ -284,13 +284,13 @@ fun MinimalThermalReceiptContent(
                                 textAlign = TextAlign.Center
                             )
 
-                            // Price
+                            // Price (Leave blank if unpriced so shopkeeper can write with pen)
                             Text(
-                                text = if (item.price != null) "₹${if (item.price % 1.0 == 0.0) item.price.toInt() else item.price}" else "— —",
+                                text = if (item.price != null) "₹${if (item.price % 1.0 == 0.0) item.price.toInt() else item.price}" else "      ",
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace,
-                                color = if (item.price != null) Color(0xFF18181B) else Color(0xFFA1A1AA),
+                                color = Color(0xFF18181B),
                                 modifier = Modifier.width(62.dp),
                                 textAlign = TextAlign.End
                             )
@@ -328,8 +328,14 @@ fun MinimalThermalReceiptContent(
                 color = Color(0xFF18181B)
             )
 
+            val totalText = if (totalAmount > 0.0) {
+                "₹ ${if (totalAmount % 1.0 == 0.0) totalAmount.toInt() else String.format("%.2f", totalAmount)}"
+            } else {
+                "₹ _______"
+            }
+
             Text(
-                text = "₹ ${if (totalAmount % 1.0 == 0.0) totalAmount.toInt() else String.format("%.2f", totalAmount)}",
+                text = totalText,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Black,
                 fontFamily = FontFamily.Monospace,

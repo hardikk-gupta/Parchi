@@ -6,23 +6,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 private val LightColorScheme = lightColorScheme(
-    primary = WoodenFrameDark,
+    primary = ParchiPurpleSupporting, // #A500FF
     onPrimary = Color.White,
-    primaryContainer = WoodenBezel,
-    onPrimaryContainer = WoodenFrameDark,
-    secondary = PrintPrimaryBlue,
-    onSecondary = Color.White,
-    secondaryContainer = Color(0xFFDBEAFE),
-    onSecondaryContainer = Color(0xFF1E3A8A),
-    tertiary = SharePrimaryGreen,
+    primaryContainer = ParchiPurpleContainer, // #F0D6FF
+    onPrimaryContainer = ParchiPurpleDark,
+    secondary = ParchiPurplePrimary, // #E7BBFF
+    onSecondary = ParchiPurpleDark,
+    secondaryContainer = ParchiPurpleLight,
+    onSecondaryContainer = ParchiPurpleDark,
+    tertiary = SuccessGreen,
     onTertiary = Color.White,
     background = CanvasBackground,
-    onBackground = InkBlack,
-    surface = ReceiptPaperWhite,
-    onSurface = InkBlack,
-    surfaceVariant = Color(0xFFF3EEE7),
+    onBackground = InkDark,
+    surface = SurfaceCard,
+    onSurface = InkDark,
+    surfaceVariant = Color(0xFFF8F5FC),
     onSurfaceVariant = InkMuted,
-    outline = ReceiptBorder
+    outline = InkBorder
 )
 
 @Composable

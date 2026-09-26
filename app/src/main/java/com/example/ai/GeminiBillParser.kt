@@ -54,43 +54,96 @@ object GeminiBillParser {
         val url = "https://generativelanguage.googleapis.com/v1beta/models/$MODEL_NAME:generateContent?key=$apiKey"
 
         val prompt = """
-            You are an expert AI Voice Billing Assistant for Indian Kirana & Grocery stores (PARCHI POS).
-            Your goal is to parse raw, continuous, noisy spoken speech into structured grocery bill items and optional customer info.
+            You are an expert AI Voice Billing Engine for Indian Kirana & Grocery stores (PARCHI POS).
+            Your task is to convert raw, fast, continuous voice dictations in Hindi, Hinglish, or English into clean, structured grocery bill line items and optional customer details.
 
-            CRITICAL INTELLIGENCE & PHONETIC CORRECTION RULES:
-            1. Speech-To-Text engines frequently mishear Indian grocery terms when spoken in Hindi/Hinglish. You MUST phonetically reconstruct the intended Kirana item:
-               - "aa", "aata", "ata", "aataa" -> "Atta"
-               - "tama", "ragma", "raj ma", "razma" -> "Rajma"
-               - "ida", "meda", "mayda", "mida" -> "Maida"
-               - "sugar core", "shakar", "cheeni", "chini" -> "Sugar"
-               - "sooji", "suji", "rawa", "rava" -> "Suji"
-               - "baisan", "basan" -> "Besan"
-               - "sarso", "sarson tel", "mustard" -> "Mustard Oil"
-               - "refine", "refined" -> "Refined Oil"
-               - "toor dal", "arhar dal", "tuvar dal", "chana dal", "moong dal", "urad dal" -> standardized Dal names
-               - "core", "aur", "and", "plus", "sath me" -> conjunctions, DO NOT treat "core" as an item!
-            2. Split multi-item dictations cleanly into individual items with their proper quantities.
-            3. Extract weights / quantities accurately: e.g. "10 kg", "5 kg", "2 kg", "3 kg", "500 g", "250 g", "1 L", "500 ml", "2 pkts", "3 pcs", "1 bori", "1 bottle", "1 box".
-            4. Extract price numbers if spoken (e.g. "10 kg atta 350 rupees" -> price: 350.0). If no price is mentioned, set price to null.
-            5. Extract customer details if present (name, 10-digit mobile, house/flat number).
+            CRITICAL PHONETIC CORRECTION & NORMALIZATION RULES:
+            1. Speech-To-Text (STT) models frequently mishear Indian Kirana terms into garbled English words or phonetics. You MUST phonetically correct and normalize them:
+               - "aa", "aata", "ata", "aataa", "आटा" -> name: "Atta"
+               - "tama", "ragma", "raj ma", "razma", "राजमा" -> name: "Rajma"
+               - "ida", "meda", "mayda", "mida", "मैदा" -> name: "Maida"
+               - "sugar core", "shakar", "cheeni", "chini", "sakkar", "चीनी" -> name: "Sugar"
+               - "sooji", "suji", "rawa", "rava" -> name: "Suji"
+               - "baisan", "basan", "बेसन" -> name: "Besan"
+               - "sarso", "sarson tel", "mustard" -> name: "Mustard Oil"
+               - "refine", "refined" -> name: "Refined Oil"
+               - "toor dal", "arhar dal", "chana dal", "moong dal", "urad dal", "masoor dal" -> standard Dal name
+               - "chawal", "chawl", "rice" -> name: "Rice"
+               - "doodh", "milk" -> name: "Milk"
+               - "dahi", "curd" -> name: "Curd"
+               - "sabun", "soap" -> name: "Soap"
+               - "chai", "tea" -> name: "Tea"
+               - "namak", "salt" -> name: "Salt"
 
-            Spoken Transcript:
+            2. CONJUNCTIONS & FILLERS REJECTION:
+               - Words like "core", "aur", "and", "plus", "sath me", "with" are conjunctions or artifacts. NEVER output "core", "aur", or "and" as an item name!
+               - E.g. "3 kg sugar core" -> name: "Sugar", quantity: "3", unit: "kg"
+               - Ignore thinking pauses, stammers, and filler words ("okay", "wait", "ek second", "hmmm", "umm", "ruko", "achha", "theek hai", "bas itna hi", "khatam").
+               - Discard completely unintelligible noise or garbled gibberish tokens.
+
+            3. QUANTITIES & UNITS:
+               - Return explicit structured fields for `name`, `quantity`, `unit`, and `price`.
+               - Extract quantity into `quantity` (e.g. "10", "5", "0.5", "250", "2", "1") and unit into `unit` (e.g. "kg", "g", "L", "ml", "pcs", "pkts", "bags", "bottles", "boxes").
+               - Convert Hindi fractions: "aadha kilo" -> quantity: "500", unit: "g"; "paav" -> quantity: "250", unit: "g"; "dedh kilo" -> quantity: "1.5", unit: "kg"; "dhai kilo" -> quantity: "2.5", unit: "kg".
+               - Default count items without weight to unit: "pcs" or "pkts".
+
+            4. PRICE:
+               - If price is stated (e.g. "50 rupaye ka dahi" -> price: 50.0; "10 kg atta 350" -> price: 350.0), set `price`.
+               - If no price is mentioned, set `price` to null.
+
+            5. CUSTOMER INFORMATION:
+               - Extract customerName, customerPhone (10-digit mobile), customerHouseNo if spoken in the transcript. Otherwise return null for these fields.
+
+            Spoken Transcript to Parse:
             "$transcript"
-
-            Return ONLY a valid JSON object following this exact schema:
-            {
-              "customerName": null,
-              "customerPhone": null,
-              "customerHouseNo": null,
-              "items": [
-                {
-                  "itemName": "Atta",
-                  "weightOrQuantity": "10 kg",
-                  "price": null
-                }
-              ]
-            }
         """.trimIndent()
+
+        val responseSchema = JSONObject().apply {
+            put("type", "OBJECT")
+            val properties = JSONObject().apply {
+                put("customerName", JSONObject().apply {
+                    put("type", "STRING")
+                    put("nullable", true)
+                })
+                put("customerPhone", JSONObject().apply {
+                    put("type", "STRING")
+                    put("nullable", true)
+                })
+                put("customerHouseNo", JSONObject().apply {
+                    put("type", "STRING")
+                    put("nullable", true)
+                })
+                put("items", JSONObject().apply {
+                    put("type", "ARRAY")
+                    put("items", JSONObject().apply {
+                        put("type", "OBJECT")
+                        val itemProps = JSONObject().apply {
+                            put("name", JSONObject().apply {
+                                put("type", "STRING")
+                                put("description", "Clean, normalized Kirana grocery item name in English (e.g., Atta, Rajma, Sugar, Curd)")
+                            })
+                            put("quantity", JSONObject().apply {
+                                put("type", "STRING")
+                                put("description", "Quantity value (e.g. 10, 5, 0.5, 250, 2, 1)")
+                            })
+                            put("unit", JSONObject().apply {
+                                put("type", "STRING")
+                                put("description", "Standard unit (e.g. kg, g, L, ml, pcs, pkts, bags, bottles)")
+                            })
+                            put("price", JSONObject().apply {
+                                put("type", "NUMBER")
+                                put("nullable", true)
+                                put("description", "Explicit price in INR or null if not spoken")
+                            })
+                        }
+                        put("properties", itemProps)
+                        put("required", JSONArray().apply { put("name") })
+                    })
+                })
+            }
+            put("properties", properties)
+            put("required", JSONArray().apply { put("items") })
+        }
 
         val requestJson = JSONObject().apply {
             val contents = JSONArray().apply {
@@ -106,6 +159,7 @@ object GeminiBillParser {
 
             val generationConfig = JSONObject().apply {
                 put("responseMimeType", "application/json")
+                put("responseSchema", responseSchema)
                 put("temperature", 0.1)
             }
             put("generationConfig", generationConfig)
@@ -138,43 +192,14 @@ object GeminiBillParser {
             val text = parts.getJSONObject(0).optString("text")
             if (text.isBlank()) return null
 
-            val cleanJson = text.trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
-            val parsedObj = JSONObject(cleanJson)
-
-            val customerName = parsedObj.optString("customerName").takeIf { it.isNotBlank() && it != "null" }
-            val customerPhone = parsedObj.optString("customerPhone").takeIf { it.isNotBlank() && it != "null" }
-            val customerHouseNo = parsedObj.optString("customerHouseNo").takeIf { it.isNotBlank() && it != "null" }
-
-            val itemsArray = parsedObj.optJSONArray("items") ?: JSONArray()
-            val itemsList = mutableListOf<BillItem>()
-
-            for (i in 0 until itemsArray.length()) {
-                val itemObj = itemsArray.getJSONObject(i)
-                val rawName = itemObj.optString("itemName").trim()
-                if (rawName.isBlank()) continue
-
-                val rawQty = itemObj.optString("weightOrQuantity").ifEmpty { "1 item" }
-                val price = if (itemObj.isNull("price") || !itemObj.has("price")) null else itemObj.optDouble("price").takeIf { !it.isNaN() }
-
-                itemsList.add(
-                    BillItem(
-                        serialNumber = startingSerial + i,
-                        itemName = rawName.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() },
-                        weightOrQuantity = rawQty,
-                        price = price,
-                        isVerified = false
-                    )
-                )
+            // Apply defensive parser with strict schema validation, fuzzy unit matching, and garbage elimination
+            val defensiveResult = GeminiOutputDefensiveParser.parseDefensively(text, startingSerial)
+            if (defensiveResult != null && (defensiveResult.items.isNotEmpty() || defensiveResult.customerInfo.name != null)) {
+                return defensiveResult
             }
 
-            return ParseResult(
-                items = itemsList,
-                customerInfo = ParsedCustomerInfo(
-                    name = customerName,
-                    phone = customerPhone,
-                    houseNo = customerHouseNo
-                )
-            )
+            Log.w(TAG, "Defensive parser could not extract valid items from: $text")
+            return null
         }
     }
 }

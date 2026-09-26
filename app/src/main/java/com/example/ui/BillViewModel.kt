@@ -43,7 +43,7 @@ data class BillUiState(
     val selectedHomeTab: HomeNavTab = HomeNavTab.Receipts,
     val searchQuery: String = "",
     val isSearchExpanded: Boolean = false,
-    val storeName: String = "Manmohan Di Hatti",
+    val storeName: String = "Manmohani Hatti",
     val storeCategory: String = "Kirana & General Store",
     val storePhone: String = "",
     val billNumber: String = generateBillNumber(),
@@ -102,7 +102,7 @@ class BillViewModel(application: Application) : AndroidViewModel(application) {
 
         // Load onboarding status & store settings
         val isOnboarded = prefs.getBoolean("onboarding_completed", false)
-        val savedStoreName = prefs.getString("store_name", "Manmohan Di Hatti") ?: "Manmohan Di Hatti"
+        val savedStoreName = prefs.getString("store_name", "Manmohani Hatti") ?: "Manmohani Hatti"
         val savedCategory = prefs.getString("store_category", "Kirana & General Store") ?: "Kirana & General Store"
         val savedPhone = prefs.getString("store_phone", "") ?: ""
 
@@ -141,7 +141,7 @@ class BillViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun completeOnboarding(businessName: String, category: String, phone: String) {
-        val cleanName = businessName.trim().ifEmpty { "Manmohan Di Hatti" }
+        val cleanName = businessName.trim().ifEmpty { "Manmohani Hatti" }
         prefs.edit()
             .putBoolean("onboarding_completed", true)
             .putString("store_name", cleanName)
@@ -158,7 +158,7 @@ class BillViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun updateStoreProfile(businessName: String, category: String, phone: String) {
-        val cleanName = businessName.trim().ifEmpty { "Manmohan Di Hatti" }
+        val cleanName = businessName.trim().ifEmpty { "Manmohani Hatti" }
         prefs.edit()
             .putString("store_name", cleanName)
             .putString("store_category", category)
